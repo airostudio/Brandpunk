@@ -2,14 +2,32 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { INTAKE_STORAGE_KEY } from "@/lib/types";
+import { buildBrandAnalysis, type BrandSignals } from "@/lib/analyzeBrand";
+import { extractLogoColors } from "@/lib/extractLogoColors";
+import { ANALYSIS_STORAGE_KEY, INTAKE_STORAGE_KEY, type BrandIntake } from "@/lib/types";
 
 const STEPS = [
   "Scanning your website…",
   "Extracting colours & typography…",
   "Reading your logo's visual style…",
-  "Sketching three brand directions…",
+  "Sketching your brand board…",
 ];
+
+async function fetchSiteSignals(websiteUrl: string): Promise<{ colors: string[]; fonts: string[] }> {
+  if (!websiteUrl.trim()) return { colors: [], fonts: [] };
+  try {
+    const res = await fetch("/api/analyze-site", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: websiteUrl }),
+    });
+    if (!res.ok) return { colors: [], fonts: [] };
+    const data = (await res.json()) as { ok: boolean; colors?: string[]; fonts?: string[] };
+    return { colors: data.colors ?? [], fonts: data.fonts ?? [] };
+  } catch {
+    return { colors: [], fonts: [] };
+  }
+}
 
 export default function AnalyzingPage() {
   const router = useRouter();
@@ -21,18 +39,39 @@ export default function AnalyzingPage() {
       router.replace("/");
       return;
     }
+    const intake = JSON.parse(raw) as BrandIntake;
 
     const stepTimer = window.setInterval(() => {
       setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
-    }, 500);
+    }, 700);
 
-    const redirectTimer = window.setTimeout(() => {
+    let cancelled = false;
+
+    (async () => {
+      const minDuration = new Promise((resolve) => window.setTimeout(resolve, 1600));
+
+      const [siteSignals, logoColors] = await Promise.all([
+        fetchSiteSignals(intake.business.websiteUrl),
+        intake.logo ? extractLogoColors(intake.logo.dataUrl).catch(() => []) : Promise.resolve([]),
+      ]);
+
+      await minDuration;
+      if (cancelled) return;
+
+      const signals: BrandSignals = {
+        siteColors: siteSignals.colors,
+        siteFonts: siteSignals.fonts,
+        logoColors,
+      };
+      const analysis = buildBrandAnalysis(intake, signals);
+
+      window.sessionStorage.setItem(ANALYSIS_STORAGE_KEY, JSON.stringify(analysis));
       router.push("/brand");
-    }, 2200);
+    })();
 
     return () => {
+      cancelled = true;
       window.clearInterval(stepTimer);
-      window.clearTimeout(redirectTimer);
     };
   }, [router]);
 

@@ -23,3 +23,4 @@ export type BrandIntake = {
 };
 
 export const INTAKE_STORAGE_KEY = "brandpunk:intake";
+export const ANALYSIS_STORAGE_KEY = "brandpunk:analysis";
