@@ -23,7 +23,7 @@ export function PunkHeader() {
           <span className="font-marker text-xl text-accent-2 sm:text-2xl">punk</span>
         </Link>
         <span className="font-mono hidden text-xs uppercase tracking-widest text-foreground/50 sm:block">
-          issue no. 001 — trydesignounk.com
+          issue no. 001 — trydesignpunk.com
         </span>
       </div>
       <div className="overflow-hidden border-t-2 border-foreground bg-accent-2 py-1">

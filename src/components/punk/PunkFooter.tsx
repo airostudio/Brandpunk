@@ -16,7 +16,7 @@ export function PunkFooter() {
           </StickerBadge>
         </div>
         <p className="font-mono text-xs uppercase tracking-widest text-foreground/40">
-          BrandPunk — trydesignounk.com — your entire business brand, designed at once.
+          BrandPunk — trydesignpunk.com — your entire business brand, designed at once.
         </p>
       </div>
     </footer>
