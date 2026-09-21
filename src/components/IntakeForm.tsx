@@ -98,12 +98,12 @@ export function IntakeForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full max-w-2xl rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:p-8 backdrop-blur"
+      className="sticker-shadow w-full max-w-2xl border-4 border-foreground bg-background/80 p-6 backdrop-blur sm:p-8"
     >
       <div className="space-y-8">
         <section className="space-y-2">
-          <label htmlFor="websiteUrl" className="flex items-baseline gap-2 text-sm font-semibold text-white">
-            <span className="text-accent">1.</span> Website URL
+          <label htmlFor="websiteUrl" className="font-display flex items-baseline gap-2 text-sm uppercase tracking-wide text-foreground">
+            <span className="text-accent">01</span> Website URL
           </label>
           <input
             id="websiteUrl"
@@ -112,17 +112,17 @@ export function IntakeForm() {
             placeholder="https://yourbusiness.com"
             value={websiteUrl}
             onChange={(e) => setWebsiteUrl(e.target.value)}
-            className="w-full rounded-lg border border-white/15 bg-black/40 px-4 py-3 text-base text-white placeholder:text-white/30 outline-none focus:border-accent"
+            className="w-full border-2 border-foreground/30 bg-black/40 px-4 py-3 font-mono text-base text-foreground placeholder:text-foreground/30 outline-none focus:border-accent"
           />
         </section>
 
         <section className="space-y-2">
-          <label htmlFor="logo" className="flex items-baseline gap-2 text-sm font-semibold text-white">
-            <span className="text-accent">2.</span> Upload Logo
+          <label htmlFor="logo" className="font-display flex items-baseline gap-2 text-sm uppercase tracking-wide text-foreground">
+            <span className="text-accent">02</span> Upload Logo
           </label>
           <label
             htmlFor="logo"
-            className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-white/20 bg-black/20 px-4 py-8 text-center transition hover:border-accent/60"
+            className="flex cursor-pointer flex-col items-center justify-center gap-3 border-2 border-dashed border-foreground/30 bg-black/20 px-4 py-8 text-center transition hover:border-accent"
           >
             {logo ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -132,9 +132,9 @@ export function IntakeForm() {
                 className="max-h-24 max-w-full object-contain"
               />
             ) : (
-              <span className="text-sm text-white/50">PNG / SVG / JPG — drop it here or click to browse</span>
+              <span className="font-mono text-sm text-foreground/50">PNG / SVG / JPG — drop it here or click to browse</span>
             )}
-            {logo && <span className="text-xs text-white/40">{logo.fileName} — click to replace</span>}
+            {logo && <span className="font-mono text-xs text-foreground/40">{logo.fileName} — click to replace</span>}
             <input
               id="logo"
               type="file"
@@ -143,12 +143,12 @@ export function IntakeForm() {
               className="hidden"
             />
           </label>
-          {logoError && <p className="text-sm text-accent-2">{logoError}</p>}
+          {logoError && <p className="font-mono text-sm text-accent-2">{logoError}</p>}
         </section>
 
         <section className="space-y-4">
-          <p className="flex items-baseline gap-2 text-sm font-semibold text-white">
-            <span className="text-accent">3.</span> Business Details
+          <p className="font-display flex items-baseline gap-2 text-sm uppercase tracking-wide text-foreground">
+            <span className="text-accent">03</span> Business Details
           </p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Business name" required>
@@ -221,14 +221,14 @@ export function IntakeForm() {
           </div>
         </section>
 
-        {submitError && <p className="text-sm text-accent-2">{submitError}</p>}
+        {submitError && <p className="font-mono text-sm text-accent-2">{submitError}</p>}
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-lg bg-accent px-6 py-4 text-center text-sm font-extrabold uppercase tracking-widest text-black transition hover:brightness-95 disabled:opacity-50"
+          className="font-display sticker-shadow w-full border-4 border-ink bg-accent px-6 py-4 text-center text-lg uppercase tracking-wide text-ink transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isSubmitting ? "Firing up the studio…" : "Hey Punk, Create My Brand Pack"}
+          {isSubmitting ? "Firing Up The Studio…" : "Hey Punk, Create My Brand Pack"}
         </button>
       </div>
     </form>
@@ -236,7 +236,7 @@ export function IntakeForm() {
 }
 
 const inputClass =
-  "w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-accent";
+  "w-full border-2 border-foreground/30 bg-black/40 px-3 py-2.5 font-mono text-sm text-foreground placeholder:text-foreground/30 outline-none focus:border-accent";
 
 function Field({
   label,
@@ -251,7 +251,7 @@ function Field({
 }) {
   return (
     <label className={`flex flex-col gap-1.5 ${full ? "sm:col-span-2" : ""}`}>
-      <span className="text-xs font-medium text-white/60">
+      <span className="font-mono text-xs font-medium uppercase tracking-wide text-foreground/50">
         {label}
         {required && <span className="text-accent-2"> *</span>}
       </span>
