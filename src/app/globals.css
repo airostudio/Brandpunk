@@ -3,120 +3,20 @@
 :root {
   --background: #0a0a0a;
   --foreground: #f4f1e6;
-  --paper: #efe9d8;
-  --ink: #0a0a0a;
   --accent: #d4ff3f;
   --accent-2: #ff2d8a;
-  --accent-3: #29e0ff;
-  --warning: #ff4d1c;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-paper: var(--paper);
-  --color-ink: var(--ink);
   --color-accent: var(--accent);
   --color-accent-2: var(--accent-2);
-  --color-accent-3: var(--accent-3);
-  --color-warning: var(--warning);
-  --font-display: "Anton", "Archivo Black", sans-serif;
-  --font-marker: "Permanent Marker", cursive;
-  --font-sans: "Archivo Black", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
-}
-
-* {
-  border-color: color-mix(in srgb, var(--foreground) 15%, transparent);
-}
-
-html {
-  scroll-behavior: smooth;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  background-image:
-    radial-gradient(circle at 15% 8%, color-mix(in srgb, var(--accent-2) 10%, transparent) 0%, transparent 45%),
-    radial-gradient(circle at 85% 0%, color-mix(in srgb, var(--accent-3) 8%, transparent) 0%, transparent 40%);
-}
-
-::selection {
-  background: var(--accent);
-  color: var(--ink);
-}
-
-/* Film-grain / xerox noise, sits above everything, never blocks clicks */
-.grain-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  pointer-events: none;
-  opacity: 0.05;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  background-size: 180px 180px;
-}
-
-/* Halftone dot field for hero-style backgrounds */
-.halftone {
-  background-image: radial-gradient(circle, color-mix(in srgb, var(--foreground) 35%, transparent) 1px, transparent 1.4px);
-  background-size: 14px 14px;
-}
-
-/* Marker-scribble underline, used to strike/underline key words */
-.marker-underline {
-  position: relative;
-  white-space: nowrap;
-}
-.marker-underline::after {
-  content: "";
-  position: absolute;
-  left: -0.15em;
-  right: -0.15em;
-  bottom: -0.06em;
-  height: 0.28em;
-  background: var(--accent);
-  transform: skewX(-8deg) rotate(-1deg);
-  z-index: -1;
-  border-radius: 2px;
-}
-
-/* Sticker/stamp shadow — flat offset "cut paper" look */
-.sticker-shadow {
-  box-shadow: 6px 6px 0 0 var(--ink), 6px 6px 0 1px color-mix(in srgb, var(--foreground) 20%, transparent);
-}
-.sticker-shadow-accent {
-  box-shadow: 6px 6px 0 0 var(--accent);
-}
-
-/* Duct-tape strip */
-.tape {
-  position: absolute;
-  background: repeating-linear-gradient(
-    45deg,
-    color-mix(in srgb, var(--paper) 92%, transparent),
-    color-mix(in srgb, var(--paper) 92%, transparent) 6px,
-    color-mix(in srgb, var(--paper) 78%, transparent) 6px,
-    color-mix(in srgb, var(--paper) 78%, transparent) 8px
-  );
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  opacity: 0.9;
-}
-
-@keyframes flicker {
-  0%, 19%, 21%, 23%, 55%, 100% { opacity: 1; }
-  20%, 22%, 56% { opacity: 0.6; }
-}
-.flicker {
-  animation: flicker 4s linear infinite;
-}
-
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-.marquee-track {
-  animation: marquee 22s linear infinite;
 }
