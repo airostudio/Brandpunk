@@ -55,7 +55,14 @@ export default function PackPage() {
         <SocialPostMockup analysis={concept.analysis} name={displayName} intake={intake} />
       </div>
 
-      <section className="mt-14 w-full max-w-xl rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
+      <Link
+        href="/editor"
+        className="mt-8 rounded-lg bg-accent px-8 py-3 text-center text-sm font-extrabold uppercase tracking-widest text-black transition hover:brightness-95"
+      >
+        Edit This Design
+      </Link>
+
+      <section className="mt-10 w-full max-w-xl rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
         <h2 className="text-sm font-bold uppercase tracking-widest text-white/70">
           Coming next in the full pack
         </h2>

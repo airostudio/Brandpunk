@@ -26,17 +26,30 @@ function MockupFrame({
   );
 }
 
-function LogoBadge({ logo, name }: { logo: BrandIntake["logo"]; name: string }) {
+function LogoBadge({
+  logo,
+  name,
+  scale = 1,
+}: {
+  logo: BrandIntake["logo"];
+  name: string;
+  scale?: number;
+}) {
+  const size = Math.round(32 * scale);
+  const style = { width: size, height: size };
   if (!logo) {
     return (
-      <span className="flex h-8 w-8 items-center justify-center rounded bg-black/10 text-[10px] font-bold">
+      <span
+        className="flex items-center justify-center rounded bg-black/10 text-[10px] font-bold"
+        style={style}
+      >
         {name.slice(0, 2).toUpperCase()}
       </span>
     );
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={logo.dataUrl} alt={`${name} logo`} className="h-8 w-8 rounded bg-white object-contain p-1" />
+    <img src={logo.dataUrl} alt={`${name} logo`} className="rounded bg-white object-contain p-1" style={style} />
   );
 }
 
@@ -47,8 +60,8 @@ export function BusinessCardMockup({ analysis, name, intake }: MockupProps) {
         className="flex h-full w-full flex-col justify-between p-5"
         style={{ backgroundColor: analysis.backgroundColor, color: analysis.textColor }}
       >
-        <div className="flex items-center gap-2">
-          <LogoBadge logo={intake.logo} name={name} />
+        <div className={`flex items-center gap-2 ${analysis.logoAlign === "center" ? "justify-center text-center" : ""}`}>
+          <LogoBadge logo={intake.logo} name={name} scale={analysis.logoScale} />
           <span
             className="text-sm font-bold uppercase tracking-wide"
             style={{ color: analysis.primaryColor, fontFamily: `"${analysis.headingFont}", sans-serif` }}
@@ -74,9 +87,12 @@ export function LetterheadMockup({ analysis, name, intake }: MockupProps) {
         className="flex h-full w-full flex-col p-5"
         style={{ backgroundColor: analysis.backgroundColor, color: analysis.textColor }}
       >
-        <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: analysis.accentColor }}>
+        <div
+          className={`flex items-center border-b pb-3 ${analysis.logoAlign === "center" ? "justify-center" : "justify-between"}`}
+          style={{ borderColor: analysis.accentColor }}
+        >
           <div className="flex items-center gap-2">
-            <LogoBadge logo={intake.logo} name={name} />
+            <LogoBadge logo={intake.logo} name={name} scale={analysis.logoScale} />
             <span
               className="text-xs font-bold uppercase tracking-wide"
               style={{ color: analysis.primaryColor, fontFamily: `"${analysis.headingFont}", sans-serif` }}
@@ -106,7 +122,7 @@ export function SocialPostMockup({ analysis, name, intake }: MockupProps) {
         style={{ backgroundColor: analysis.primaryColor }}
       >
         <div className="rounded-full bg-white/95 p-2">
-          <LogoBadge logo={intake.logo} name={name} />
+          <LogoBadge logo={intake.logo} name={name} scale={analysis.logoScale} />
         </div>
         <p
           className="text-base font-extrabold uppercase leading-tight"

@@ -12,6 +12,8 @@ export type BrandAnalysis = {
   styleTags: string[];
   toneSummary: string;
   source: "extracted" | "guessed";
+  logoScale: number;
+  logoAlign: "left" | "center";
 };
 
 export type BrandSignals = {
@@ -137,5 +139,7 @@ export function buildBrandAnalysis(intake: BrandIntake, signals: BrandSignals): 
     styleTags,
     toneSummary,
     source: hasRealColors || hasRealFonts ? "extracted" : "guessed",
+    logoScale: 1,
+    logoAlign: "left",
   };
 }
