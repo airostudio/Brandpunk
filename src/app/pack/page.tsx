@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { BrandConcept } from "@/lib/generateConcepts";
 import { CONCEPT_STORAGE_KEY, INTAKE_STORAGE_KEY, type BrandIntake } from "@/lib/types";
-import { BusinessCardMockup, LetterheadMockup, SocialPostMockup } from "@/components/BrandMockups";
+import { DeskScene } from "@/components/DeskScene";
 
 function readStored<T>(key: string): T | null {
   if (typeof window === "undefined") return null;
@@ -49,10 +49,8 @@ export default function PackPage() {
         </p>
       </div>
 
-      <div className="grid w-full max-w-4xl grid-cols-1 gap-6 md:grid-cols-3">
-        <BusinessCardMockup analysis={concept.analysis} name={displayName} intake={intake} />
-        <LetterheadMockup analysis={concept.analysis} name={displayName} intake={intake} />
-        <SocialPostMockup analysis={concept.analysis} name={displayName} intake={intake} />
+      <div className="w-full max-w-4xl">
+        <DeskScene analysis={concept.analysis} name={displayName} intake={intake} />
       </div>
 
       <Link

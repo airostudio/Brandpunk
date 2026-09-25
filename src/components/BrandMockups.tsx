@@ -1,4 +1,5 @@
 import type { BrandAnalysis } from "@/lib/analyzeBrand";
+import { contrastTextColor, parseCssColor } from "@/lib/colorUtils";
 import type { BrandIntake } from "@/lib/types";
 
 type MockupProps = {
@@ -53,90 +54,110 @@ function LogoBadge({
   );
 }
 
-export function BusinessCardMockup({ analysis, name, intake }: MockupProps) {
+export function BusinessCardArt({ analysis, name, intake }: MockupProps) {
   return (
-    <MockupFrame label="Business Card" aspect="aspect-[1.75/1]">
+    <div
+      className="flex h-full w-full flex-col justify-between p-5"
+      style={{ backgroundColor: analysis.backgroundColor, color: analysis.textColor }}
+    >
+      <div className={`flex items-center gap-2 ${analysis.logoAlign === "center" ? "justify-center text-center" : ""}`}>
+        <LogoBadge logo={intake.logo} name={name} scale={analysis.logoScale} />
+        <span
+          className="text-sm font-bold uppercase tracking-wide"
+          style={{ color: analysis.primaryColor, fontFamily: `"${analysis.headingFont}", sans-serif` }}
+        >
+          {name}
+        </span>
+      </div>
+      <div className="h-0.5 w-10 rounded-full" style={{ backgroundColor: analysis.accentColor }} />
+      <div className="text-[11px] leading-relaxed" style={{ fontFamily: `"${analysis.bodyFont}", sans-serif`, opacity: 0.85 }}>
+        {intake.business.phone && <p>{intake.business.phone}</p>}
+        {intake.business.email && <p>{intake.business.email}</p>}
+        {intake.business.websiteUrl && <p>{intake.business.websiteUrl.replace(/^https?:\/\//, "")}</p>}
+      </div>
+    </div>
+  );
+}
+
+export function LetterheadArt({ analysis, name, intake }: MockupProps) {
+  return (
+    <div
+      className="flex h-full w-full flex-col p-5"
+      style={{ backgroundColor: analysis.backgroundColor, color: analysis.textColor }}
+    >
       <div
-        className="flex h-full w-full flex-col justify-between p-5"
-        style={{ backgroundColor: analysis.backgroundColor, color: analysis.textColor }}
+        className={`flex items-center border-b pb-3 ${analysis.logoAlign === "center" ? "justify-center" : "justify-between"}`}
+        style={{ borderColor: analysis.accentColor }}
       >
-        <div className={`flex items-center gap-2 ${analysis.logoAlign === "center" ? "justify-center text-center" : ""}`}>
+        <div className="flex items-center gap-2">
           <LogoBadge logo={intake.logo} name={name} scale={analysis.logoScale} />
           <span
-            className="text-sm font-bold uppercase tracking-wide"
+            className="text-xs font-bold uppercase tracking-wide"
             style={{ color: analysis.primaryColor, fontFamily: `"${analysis.headingFont}", sans-serif` }}
           >
             {name}
           </span>
         </div>
-        <div className="h-0.5 w-10 rounded-full" style={{ backgroundColor: analysis.accentColor }} />
-        <div className="text-[11px] leading-relaxed" style={{ fontFamily: `"${analysis.bodyFont}", sans-serif`, opacity: 0.85 }}>
-          {intake.business.phone && <p>{intake.business.phone}</p>}
-          {intake.business.email && <p>{intake.business.email}</p>}
-          {intake.business.websiteUrl && <p>{intake.business.websiteUrl.replace(/^https?:\/\//, "")}</p>}
-        </div>
       </div>
+      <div className="mt-5 flex flex-1 flex-col gap-2 opacity-30">
+        {Array.from({ length: 7 }).map((_, i) => (
+          <div key={i} className="h-1.5 rounded-full" style={{ backgroundColor: analysis.textColor, width: `${90 - i * 6}%` }} />
+        ))}
+      </div>
+      <p className="mt-3 text-[10px]" style={{ opacity: 0.6, fontFamily: `"${analysis.bodyFont}", sans-serif` }}>
+        {intake.business.address || intake.business.email}
+      </p>
+    </div>
+  );
+}
+
+export function SocialPostArt({ analysis, name, intake }: MockupProps) {
+  const onPrimary = contrastTextColor(parseCssColor(analysis.primaryColor) ?? { r: 0, g: 0, b: 0 });
+  const onAccent = contrastTextColor(parseCssColor(analysis.accentColor) ?? { r: 0, g: 0, b: 0 });
+  return (
+    <div
+      className="flex h-full w-full flex-col items-center justify-center gap-4 p-6 text-center"
+      style={{ backgroundColor: analysis.primaryColor }}
+    >
+      <div className="rounded-full bg-white/95 p-2">
+        <LogoBadge logo={intake.logo} name={name} scale={analysis.logoScale} />
+      </div>
+      <p
+        className="text-base font-extrabold uppercase leading-tight"
+        style={{ color: onPrimary, fontFamily: `"${analysis.headingFont}", sans-serif` }}
+      >
+        {intake.business.tagline || name}
+      </p>
+      <span
+        className="rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest"
+        style={{ backgroundColor: analysis.accentColor, color: onAccent }}
+      >
+        {name}
+      </span>
+    </div>
+  );
+}
+
+export function BusinessCardMockup(props: MockupProps) {
+  return (
+    <MockupFrame label="Business Card" aspect="aspect-[1.75/1]">
+      <BusinessCardArt {...props} />
     </MockupFrame>
   );
 }
 
-export function LetterheadMockup({ analysis, name, intake }: MockupProps) {
+export function LetterheadMockup(props: MockupProps) {
   return (
     <MockupFrame label="Letterhead" aspect="aspect-[3/4]">
-      <div
-        className="flex h-full w-full flex-col p-5"
-        style={{ backgroundColor: analysis.backgroundColor, color: analysis.textColor }}
-      >
-        <div
-          className={`flex items-center border-b pb-3 ${analysis.logoAlign === "center" ? "justify-center" : "justify-between"}`}
-          style={{ borderColor: analysis.accentColor }}
-        >
-          <div className="flex items-center gap-2">
-            <LogoBadge logo={intake.logo} name={name} scale={analysis.logoScale} />
-            <span
-              className="text-xs font-bold uppercase tracking-wide"
-              style={{ color: analysis.primaryColor, fontFamily: `"${analysis.headingFont}", sans-serif` }}
-            >
-              {name}
-            </span>
-          </div>
-        </div>
-        <div className="mt-5 flex flex-1 flex-col gap-2 opacity-30">
-          {Array.from({ length: 7 }).map((_, i) => (
-            <div key={i} className="h-1.5 rounded-full" style={{ backgroundColor: analysis.textColor, width: `${90 - i * 6}%` }} />
-          ))}
-        </div>
-        <p className="mt-3 text-[10px]" style={{ opacity: 0.6, fontFamily: `"${analysis.bodyFont}", sans-serif` }}>
-          {intake.business.address || intake.business.email}
-        </p>
-      </div>
+      <LetterheadArt {...props} />
     </MockupFrame>
   );
 }
 
-export function SocialPostMockup({ analysis, name, intake }: MockupProps) {
+export function SocialPostMockup(props: MockupProps) {
   return (
     <MockupFrame label="Instagram Post" aspect="aspect-square">
-      <div
-        className="flex h-full w-full flex-col items-center justify-center gap-4 p-6 text-center"
-        style={{ backgroundColor: analysis.primaryColor }}
-      >
-        <div className="rounded-full bg-white/95 p-2">
-          <LogoBadge logo={intake.logo} name={name} scale={analysis.logoScale} />
-        </div>
-        <p
-          className="text-base font-extrabold uppercase leading-tight"
-          style={{ color: analysis.backgroundColor, fontFamily: `"${analysis.headingFont}", sans-serif` }}
-        >
-          {intake.business.tagline || name}
-        </p>
-        <span
-          className="rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest"
-          style={{ backgroundColor: analysis.accentColor, color: analysis.primaryColor }}
-        >
-          {name}
-        </span>
-      </div>
+      <SocialPostArt {...props} />
     </MockupFrame>
   );
 }
