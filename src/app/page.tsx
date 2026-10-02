@@ -45,12 +45,12 @@ const USE_CASES = [
 ];
 
 const OUTPUT_FORMATS = [
-  { name: "Business cards", detail: "Print-ready, double-sided" },
-  { name: "Letterheads", detail: "Word & PDF" },
-  { name: "Invoices & quotes", detail: "Excel & Word templates" },
+  { name: "Business cards", detail: "PNG, ready to print" },
+  { name: "Letterheads", detail: "PNG & editable Word" },
+  { name: "Invoices", detail: "Editable Excel template" },
   { name: "Email signatures", detail: "HTML, works in Outlook & Gmail" },
-  { name: "Social posts", detail: "Instagram, Facebook, LinkedIn" },
-  { name: "Brand guidelines", detail: "PDF" },
+  { name: "Social posts", detail: "Instagram-ready PNG" },
+  { name: "Brand guidelines", detail: "Word summary" },
 ];
 
 export default function Home() {
