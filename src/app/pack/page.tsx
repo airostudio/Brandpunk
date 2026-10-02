@@ -8,7 +8,7 @@ import { downloadBrandPack } from "@/lib/exportPack";
 import { CONCEPT_STORAGE_KEY, INTAKE_STORAGE_KEY, PLAN_STORAGE_KEY, type BrandIntake, type PlanTier } from "@/lib/types";
 import { DeskScene } from "@/components/DeskScene";
 import { BusinessCardArt, CoverBannerArt, LetterheadArt, SocialPostArt } from "@/components/BrandMockups";
-import { UpgradeModal } from "@/components/UpgradeModal";
+import { UpgradeModal, type AccountStatus } from "@/components/UpgradeModal";
 import { CARD_SIZE, FB_COVER_SIZE, LETTERHEAD_SIZE, LINKEDIN_COVER_SIZE, SOCIAL_SIZE } from "@/lib/mockupSizes";
 
 function readStored<T>(key: string): T | null {
@@ -38,9 +38,11 @@ export default function PackPage() {
   const router = useRouter();
   const [intake] = useState<BrandIntake | null>(() => readStored<BrandIntake>(INTAKE_STORAGE_KEY));
   const [concept] = useState<BrandConcept | null>(() => readStored<BrandConcept>(CONCEPT_STORAGE_KEY));
-  const [status, setStatus] = useState<"idle" | "working" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "working" | "error" | "limit-reached">("idle");
   const [tier, setTier] = useState<PlanTier>(() => readStored<PlanTier>(PLAN_STORAGE_KEY) ?? "free");
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
 
   const businessCardRef = useRef<HTMLDivElement>(null);
   const letterheadRef = useRef<HTMLDivElement>(null);
@@ -52,27 +54,79 @@ export default function PackPage() {
     if (!intake || !concept) router.replace("/");
   }, [intake, concept, router]);
 
+  async function refreshAccountStatus() {
+    try {
+      const res = await fetch("/api/account/status");
+      const data = await res.json();
+      if (data.ok) setAccountStatus(data);
+    } catch {
+      // Leave accountStatus as-is — the Pro gate just stays locked if this can't be reached.
+    }
+  }
+
+  useEffect(() => {
+    (async () => {
+      await refreshAccountStatus();
+
+      const params = new URLSearchParams(window.location.search);
+      const oneTimeSessionId = params.get("session_id");
+      const subscriptionSessionId = params.get("subscription_session_id");
+      if (!oneTimeSessionId && !subscriptionSessionId) return;
+
+      setVerifyingPayment(true);
+      try {
+        const query = oneTimeSessionId ? `session_id=${oneTimeSessionId}` : `subscription_session_id=${subscriptionSessionId}`;
+        const res = await fetch(`/api/checkout/verify?${query}`);
+        const data = await res.json();
+        if (data.ok && oneTimeSessionId && data.paid) {
+          setTier("pro");
+          window.sessionStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify("pro"));
+        }
+        if (data.ok && subscriptionSessionId && data.active) {
+          await refreshAccountStatus();
+        }
+      } finally {
+        setVerifyingPayment(false);
+        router.replace("/pack");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   if (!intake || !concept) return null;
 
   const displayName = intake.business.businessName || "Your Business";
-  const isPro = tier === "pro";
-
-  function unlockPro() {
-    setTier("pro");
-    window.sessionStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify("pro"));
-    setShowUpgrade(false);
-  }
+  const oneTimePro = tier === "pro";
+  const subscriptionPro = Boolean(accountStatus?.signedIn && accountStatus.packsRemaining);
+  const isPro = oneTimePro || subscriptionPro;
 
   async function handleDownload() {
     if (!businessCardRef.current || !letterheadRef.current || !socialPostRef.current || !intake || !concept) return;
     setStatus("working");
+
+    if (!oneTimePro && subscriptionPro) {
+      try {
+        const res = await fetch("/api/packs/consume", { method: "POST" });
+        const data = await res.json();
+        if (!data.ok) {
+          setStatus("limit-reached");
+          await refreshAccountStatus();
+          return;
+        }
+        setAccountStatus((prev) => (prev ? { ...prev, packsUsedThisPeriod: data.packsUsedThisPeriod } : prev));
+      } catch {
+        setStatus("error");
+        return;
+      }
+    }
+
     try {
       await downloadBrandPack({
         intake,
         analysis: concept.analysis,
         conceptName: concept.name,
         name: displayName,
-        tier,
+        tier: isPro ? "pro" : "free",
         nodes: {
           businessCard: businessCardRef.current,
           letterhead: letterheadRef.current,
@@ -97,7 +151,7 @@ export default function PackPage() {
           {displayName}&apos;s brand pack
         </h1>
         <p className="mt-3 text-sm text-white/50">
-          Here&apos;s your chosen direction, ready to download.
+          {verifyingPayment ? "Confirming your payment…" : "Here's your chosen direction, ready to download."}
         </p>
       </div>
 
@@ -145,6 +199,19 @@ export default function PackPage() {
           Something went wrong building the pack — try again.
         </p>
       )}
+      {status === "limit-reached" && (
+        <p className="mt-3 text-sm text-accent-2">
+          You&apos;ve used all your packs for this billing period — upgrade your plan or wait for it to reset.
+        </p>
+      )}
+
+      {subscriptionPro && (
+        <p className="mt-3 text-xs text-white/40">
+          {accountStatus?.packsPerPeriod === null
+            ? "Unlimited packs on your plan."
+            : `${accountStatus?.packsUsedThisPeriod ?? 0} / ${accountStatus?.packsPerPeriod} packs used this period.`}
+        </p>
+      )}
 
       <section className="mt-10 w-full max-w-xl rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
         <h2 className="text-sm font-bold uppercase tracking-widest text-white/70">What&apos;s in the ZIP</h2>
@@ -185,7 +252,9 @@ export default function PackPage() {
         </ul>
       </section>
 
-      {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} onUnlock={unlockPro} />}
+      {showUpgrade && (
+        <UpgradeModal onClose={() => setShowUpgrade(false)} businessName={displayName} accountStatus={accountStatus} />
+      )}
 
       <Link
         href="/"
