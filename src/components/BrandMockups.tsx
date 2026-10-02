@@ -253,6 +253,35 @@ export function InvoiceArt({ analysis, name, intake, onLogoDragStart }: MockupPr
   );
 }
 
+export function CoverBannerArt({ analysis, name, intake }: MockupProps) {
+  const onPrimary = contrastTextColor(parseCssColor(analysis.primaryColor) ?? { r: 0, g: 0, b: 0 });
+  return (
+    <div
+      className="flex h-full w-full items-center gap-4 px-8"
+      style={{ backgroundColor: analysis.primaryColor }}
+    >
+      <LogoBadge logo={intake.logo} name={name} scale={analysis.logoScale * 1.4} />
+      <div className="flex flex-col gap-1">
+        <span
+          className="text-xl font-black uppercase tracking-wide"
+          style={{ color: onPrimary, fontFamily: `"${analysis.headingFont}", sans-serif` }}
+        >
+          {name}
+        </span>
+        {intake.business.tagline && (
+          <span
+            className="text-xs font-medium"
+            style={{ color: onPrimary, opacity: 0.8, fontFamily: `"${analysis.bodyFont}", sans-serif` }}
+          >
+            {intake.business.tagline}
+          </span>
+        )}
+      </div>
+      <span className="ml-auto h-10 w-1 rounded-full" style={{ backgroundColor: analysis.accentColor }} />
+    </div>
+  );
+}
+
 export function BusinessCardMockup(props: MockupProps) {
   return (
     <MockupFrame label="Business Card" aspect="aspect-[1.75/1]">
