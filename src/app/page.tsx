@@ -199,9 +199,20 @@ export default function Home() {
           directly with OpenAI&apos;s latest models — credit-based, no
           subscription required. Start with 5,000 credits for $6.99.
         </p>
+        <div className="mt-8 grid w-full max-w-lg grid-cols-3 gap-3">
+          {[
+            { src: "/studio-examples/voltline-electrical.webp", alt: "VoltLine Electrical ad example" },
+            { src: "/studio-examples/ember-and-oak.webp", alt: "Ember & Oak ad example" },
+            { src: "/studio-examples/tidehouse-retreat.webp", alt: "Tidehouse Retreat ad example" },
+          ].map((example) => (
+            <div key={example.src} className="relative aspect-[2/3] overflow-hidden rounded-lg border border-white/10">
+              <Image src={example.src} alt={example.alt} fill className="object-cover" />
+            </div>
+          ))}
+        </div>
         <Link
           href="/studio"
-          className="mt-6 rounded-lg bg-accent-2 px-8 py-3.5 text-sm font-extrabold uppercase tracking-widest text-black transition hover:brightness-95"
+          className="mt-8 rounded-lg bg-accent-2 px-8 py-3.5 text-sm font-extrabold uppercase tracking-widest text-black transition hover:brightness-95"
         >
           Try Ad Studio
         </Link>

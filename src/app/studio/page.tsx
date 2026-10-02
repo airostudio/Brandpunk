@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
@@ -11,6 +12,12 @@ type VideoStatus = "queued" | "in_progress" | "completed" | "failed";
 type AccountStatus = { signedIn: boolean; creditsBalance?: number };
 
 const CREDIT_PACK = CREDIT_PACKS.starter;
+
+const EXAMPLES = [
+  { src: "/studio-examples/voltline-electrical.webp", alt: "VoltLine Electrical ad", caption: "VoltLine Electrical" },
+  { src: "/studio-examples/ember-and-oak.webp", alt: "Ember & Oak ad", caption: "Ember & Oak" },
+  { src: "/studio-examples/tidehouse-retreat.webp", alt: "Tidehouse Retreat ad", caption: "Tidehouse Retreat" },
+];
 
 export default function StudioPage() {
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
@@ -284,6 +291,39 @@ export default function StudioPage() {
             </a>
           </div>
         )}
+      </div>
+
+      {/* Example output */}
+      <div className="mt-16 w-full max-w-4xl">
+        <div className="mb-6 flex flex-col items-center text-center">
+          <h2 className="text-xl font-black uppercase tracking-tight sm:text-2xl">
+            See what <span className="text-accent-2">Ad Studio</span> can create
+          </h2>
+          <p className="mt-2 text-sm text-white/50">Example output for fictional businesses.</p>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {EXAMPLES.map((example) => (
+            <div key={example.src} className="overflow-hidden rounded-xl border border-white/10">
+              <div className="relative aspect-[2/3] w-full">
+                <Image src={example.src} alt={example.alt} fill className="object-cover" />
+              </div>
+              <p className="bg-white/[0.03] py-2 text-center text-xs font-semibold uppercase tracking-widest text-white/50">
+                {example.caption}
+              </p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 overflow-hidden rounded-xl border border-white/10">
+          <video
+            src="/studio-examples/ad-studio-demo.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            controls
+            className="w-full"
+          />
+        </div>
       </div>
 
       <Link
