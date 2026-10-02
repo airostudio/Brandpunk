@@ -17,7 +17,7 @@ export async function buildLetterheadDocx(intake: BrandIntake, analysis: BrandAn
   const children: Paragraph[] = [];
 
   if (intake.logo) {
-    const { bytes, width, height } = await rasterizeToPng(intake.logo.dataUrl, 200);
+    const { bytes, width, height } = await rasterizeToPng(intake.logo.dataUrl, 600);
     const ratio = width / height;
     const logoHeight = 60;
     children.push(

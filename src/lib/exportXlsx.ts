@@ -24,7 +24,7 @@ export async function buildInvoiceXlsx(intake: BrandIntake, analysis: BrandAnaly
   ];
 
   if (intake.logo) {
-    const { bytes, width, height } = await rasterizeToPng(intake.logo.dataUrl, 160);
+    const { bytes, width, height } = await rasterizeToPng(intake.logo.dataUrl, 500);
     const imageId = workbook.addImage({ buffer: bytes as unknown as ExcelJS.Buffer, extension: "png" });
     const ratio = width / height;
     const h = 50;

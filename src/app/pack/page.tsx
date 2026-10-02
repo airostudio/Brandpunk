@@ -8,6 +8,7 @@ import { downloadBrandPack } from "@/lib/exportPack";
 import { CONCEPT_STORAGE_KEY, INTAKE_STORAGE_KEY, type BrandIntake } from "@/lib/types";
 import { DeskScene } from "@/components/DeskScene";
 import { BusinessCardArt, LetterheadArt, SocialPostArt } from "@/components/BrandMockups";
+import { CARD_SIZE, LETTERHEAD_SIZE, SOCIAL_SIZE } from "@/lib/mockupSizes";
 
 function readStored<T>(key: string): T | null {
   if (typeof window === "undefined") return null;
@@ -81,13 +82,13 @@ export default function PackPage() {
 
       {/* Hidden, un-rotated renders used only to capture clean export images */}
       <div className="pointer-events-none fixed left-[-9999px] top-0" aria-hidden="true">
-        <div ref={businessCardRef} style={{ width: 350, height: 200, overflow: "hidden" }}>
+        <div ref={businessCardRef} style={{ ...CARD_SIZE, overflow: "hidden" }}>
           <BusinessCardArt analysis={concept.analysis} name={displayName} intake={intake} />
         </div>
-        <div ref={letterheadRef} style={{ width: 350, height: 467, overflow: "hidden" }}>
+        <div ref={letterheadRef} style={{ ...LETTERHEAD_SIZE, overflow: "hidden" }}>
           <LetterheadArt analysis={concept.analysis} name={displayName} intake={intake} />
         </div>
-        <div ref={socialPostRef} style={{ width: 400, height: 400, overflow: "hidden" }}>
+        <div ref={socialPostRef} style={{ ...SOCIAL_SIZE, overflow: "hidden" }}>
           <SocialPostArt analysis={concept.analysis} name={displayName} intake={intake} />
         </div>
       </div>
@@ -117,8 +118,8 @@ export default function PackPage() {
       <section className="mt-10 w-full max-w-xl rounded-2xl border border-white/10 bg-white/[0.03] p-6 sm:p-8">
         <h2 className="text-sm font-bold uppercase tracking-widest text-white/70">What&apos;s in the ZIP</h2>
         <ul className="mt-4 grid grid-cols-1 gap-2 text-sm text-white/60 sm:grid-cols-2">
-          <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Business card (PNG)</li>
-          <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Letterhead (PNG + Word)</li>
+          <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Business card (300 DPI PNG)</li>
+          <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Letterhead (300 DPI PNG + Word)</li>
           <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Instagram post (PNG)</li>
           <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Invoice template (Excel)</li>
           <li className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-accent" />Email signature (HTML)</li>

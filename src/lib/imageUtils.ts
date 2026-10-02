@@ -14,11 +14,12 @@ export function dataUrlToBytes(dataUrl: string): Uint8Array {
  */
 export function rasterizeToPng(
   dataUrl: string,
-  maxSize = 512,
+  maxSize = 1024,
 ): Promise<{ bytes: Uint8Array; width: number; height: number }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
+      // Never upscale past the source's native resolution — only cap it down.
       const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
       const width = Math.max(1, Math.round(img.width * scale));
       const height = Math.max(1, Math.round(img.height * scale));
@@ -30,6 +31,8 @@ export function rasterizeToPng(
         reject(new Error("Canvas not supported"));
         return;
       }
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
       ctx.drawImage(img, 0, 0, width, height);
       const pngDataUrl = canvas.toDataURL("image/png");
       resolve({ bytes: dataUrlToBytes(pngDataUrl), width, height });

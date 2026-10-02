@@ -14,6 +14,23 @@ export type BrandAnalysis = {
   source: "extracted" | "guessed";
   logoScale: number;
   logoAlign: "left" | "center";
+  /**
+   * Fine-position drag offsets in px, kept separate per asset — each
+   * mockup lays the logo out differently (inline in a row vs. centered in
+   * a badge), so one shared offset would drag it out of place on the
+   * others the moment any single one was nudged.
+   */
+  logoOffsets: LogoOffsets;
+};
+
+export type LogoOffsetKey = "card" | "letterhead" | "invoice" | "social";
+export type LogoOffsets = Record<LogoOffsetKey, { x: number; y: number }>;
+
+export const DEFAULT_LOGO_OFFSETS: LogoOffsets = {
+  card: { x: 0, y: 0 },
+  letterhead: { x: 0, y: 0 },
+  invoice: { x: 0, y: 0 },
+  social: { x: 0, y: 0 },
 };
 
 export type BrandSignals = {
@@ -141,5 +158,6 @@ export function buildBrandAnalysis(intake: BrandIntake, signals: BrandSignals): 
     source: hasRealColors || hasRealFonts ? "extracted" : "guessed",
     logoScale: 1,
     logoAlign: "left",
+    logoOffsets: { ...DEFAULT_LOGO_OFFSETS },
   };
 }

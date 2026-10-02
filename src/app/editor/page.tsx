@@ -3,17 +3,27 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
-import type { BrandAnalysis } from "@/lib/analyzeBrand";
+import type { BrandAnalysis, LogoOffsetKey, LogoOffsets } from "@/lib/analyzeBrand";
+import { DEFAULT_LOGO_OFFSETS } from "@/lib/analyzeBrand";
 import { contrastTextColor, parseCssColor } from "@/lib/colorUtils";
 import type { BrandConcept } from "@/lib/generateConcepts";
 import { CONCEPT_STORAGE_KEY, INTAKE_STORAGE_KEY, type BrandIntake } from "@/lib/types";
-import { BusinessCardMockup, LetterheadMockup, SocialPostMockup } from "@/components/BrandMockups";
+import { BusinessCardArt, InvoiceArt, LetterheadArt, SocialPostArt } from "@/components/BrandMockups";
+import { CARD_SIZE, LETTERHEAD_SIZE, SOCIAL_SIZE } from "@/lib/mockupSizes";
 
 function readStored<T>(key: string): T | null {
   if (typeof window === "undefined") return null;
   const raw = window.sessionStorage.getItem(key);
   return raw ? (JSON.parse(raw) as T) : null;
 }
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+// The editor preview renders at the exact same pixel sizes the ZIP export
+// captures from (src/lib/mockupSizes.ts), so dragging the logo here is
+// truly WYSIWYG, not an approximation that shifts on download.
 
 type EditableFields = {
   businessName: string;
@@ -26,6 +36,7 @@ type EditableFields = {
   backgroundColor: string;
   logoScale: number;
   logoAlign: "left" | "center";
+  logoOffsets: LogoOffsets;
 };
 
 function fieldsFrom(intake: BrandIntake, concept: BrandConcept): EditableFields {
@@ -40,6 +51,7 @@ function fieldsFrom(intake: BrandIntake, concept: BrandConcept): EditableFields 
     backgroundColor: concept.analysis.backgroundColor,
     logoScale: concept.analysis.logoScale,
     logoAlign: concept.analysis.logoAlign,
+    logoOffsets: concept.analysis.logoOffsets,
   };
 }
 
@@ -63,6 +75,52 @@ export default function EditorPage() {
     setSaved(false);
   }
 
+  function makeLogoDragHandler(key: LogoOffsetKey) {
+    return function handleLogoDragStart(event: React.PointerEvent<HTMLElement>) {
+      event.preventDefault();
+      const origin = fields?.logoOffsets[key] ?? { x: 0, y: 0 };
+      // Transient drag-tracking state, not render state — a plain variable
+      // (rather than a ref) avoids reading/writing ref.current during render.
+      let drag: { startX: number; startY: number; originX: number; originY: number } | null = {
+        startX: event.clientX,
+        startY: event.clientY,
+        originX: origin.x,
+        originY: origin.y,
+      };
+
+      function onMove(moveEvent: PointerEvent) {
+        const started = drag;
+        if (!started) return;
+        const dx = moveEvent.clientX - started.startX;
+        const dy = moveEvent.clientY - started.startY;
+        setFields((prev) =>
+          prev
+            ? {
+                ...prev,
+                logoOffsets: {
+                  ...prev.logoOffsets,
+                  [key]: {
+                    x: clamp(started.originX + dx, -120, 260),
+                    y: clamp(started.originY + dy, -60, 380),
+                  },
+                },
+              }
+            : prev,
+        );
+        setSaved(false);
+      }
+
+      function onUp() {
+        drag = null;
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+      }
+
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    };
+  }
+
   const previewIntake: BrandIntake = {
     ...intake,
     business: {
@@ -83,6 +141,7 @@ export default function EditorPage() {
     textColor: contrastTextColor(parseCssColor(fields.backgroundColor) ?? { r: 255, g: 255, b: 255 }),
     logoScale: fields.logoScale,
     logoAlign: fields.logoAlign,
+    logoOffsets: fields.logoOffsets,
   };
 
   const displayName = fields.businessName || "Your Business";
@@ -98,14 +157,20 @@ export default function EditorPage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col px-4 py-16 sm:py-20">
+    <main className="flex flex-1 flex-col px-4 py-10 sm:py-16">
+      <div className="mx-auto mb-6 w-full max-w-6xl">
+        <Link href="/pack" className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-white/50 hover:text-white">
+          ← Back to Pack
+        </Link>
+      </div>
+
       <div className="mb-10 flex flex-col items-center text-center">
         <span className="mb-3 rounded-full border border-accent/40 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent">
           Brand Studio — {concept.name}
         </span>
         <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Fine-tune your design</h1>
         <p className="mt-3 max-w-md text-sm text-white/50">
-          Change anything below — every mockup updates instantly.
+          Change text and colours on the left, or drag the logo directly on any mockup to reposition it.
         </p>
       </div>
 
@@ -152,7 +217,7 @@ export default function EditorPage() {
               />
             </div>
             <div>
-              <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white/50">Position</span>
+              <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white/50">Alignment</span>
               <div className="flex gap-2">
                 <SegButton active={fields.logoAlign === "left"} onClick={() => update("logoAlign", "left")}>
                   Left
@@ -161,6 +226,18 @@ export default function EditorPage() {
                   Centre
                 </SegButton>
               </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-white/40">Drag the logo on any mockup to nudge its position.</p>
+              {Object.values(fields.logoOffsets).some((o) => o.x !== 0 || o.y !== 0) && (
+                <button
+                  type="button"
+                  onClick={() => update("logoOffsets", { ...DEFAULT_LOGO_OFFSETS })}
+                  className="shrink-0 text-xs font-semibold text-accent hover:underline"
+                >
+                  Reset all
+                </button>
+              )}
             </div>
           </ControlSection>
 
@@ -181,14 +258,68 @@ export default function EditorPage() {
           </div>
         </aside>
 
-        {/* Live preview */}
-        <div className="grid flex-1 grid-cols-1 gap-6 self-start sm:grid-cols-2 xl:grid-cols-3">
-          <BusinessCardMockup analysis={previewAnalysis} name={displayName} intake={previewIntake} />
-          <LetterheadMockup analysis={previewAnalysis} name={displayName} intake={previewIntake} />
-          <SocialPostMockup analysis={previewAnalysis} name={displayName} intake={previewIntake} />
+        {/* Live preview — fixed sizes matching the export capture dimensions */}
+        <div className="flex flex-1 flex-wrap items-start gap-6">
+          <FixedPreview label="Business Card" size={CARD_SIZE}>
+            <BusinessCardArt
+              analysis={previewAnalysis}
+              name={displayName}
+              intake={previewIntake}
+              onLogoDragStart={makeLogoDragHandler("card")}
+            />
+          </FixedPreview>
+
+          <FixedPreview label="Letterhead" size={LETTERHEAD_SIZE}>
+            <LetterheadArt
+              analysis={previewAnalysis}
+              name={displayName}
+              intake={previewIntake}
+              onLogoDragStart={makeLogoDragHandler("letterhead")}
+            />
+          </FixedPreview>
+
+          <FixedPreview label="Invoice" size={LETTERHEAD_SIZE}>
+            <InvoiceArt
+              analysis={previewAnalysis}
+              name={displayName}
+              intake={previewIntake}
+              onLogoDragStart={makeLogoDragHandler("invoice")}
+            />
+          </FixedPreview>
+
+          <FixedPreview label="Instagram Post" size={SOCIAL_SIZE}>
+            <SocialPostArt
+              analysis={previewAnalysis}
+              name={displayName}
+              intake={previewIntake}
+              onLogoDragStart={makeLogoDragHandler("social")}
+            />
+          </FixedPreview>
         </div>
       </div>
     </main>
+  );
+}
+
+function FixedPreview({
+  label,
+  size,
+  children,
+}: {
+  label: string;
+  size: { width: number; height: number };
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div
+        className="overflow-hidden rounded-xl border border-white/10 shadow-lg"
+        style={{ width: size.width, height: size.height }}
+      >
+        {children}
+      </div>
+      <p className="text-center text-xs font-semibold uppercase tracking-widest text-white/50">{label}</p>
+    </div>
   );
 }
 
