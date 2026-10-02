@@ -13,6 +13,7 @@ import "@fontsource/playfair-display/700.css";
 import "@fontsource/source-sans-3/400.css";
 import "@fontsource/source-sans-3/500.css";
 import "./globals.css";
+import { SiteHeader } from "@/components/SiteHeader";
 
 export const metadata: Metadata = {
   title: "BrandPunk — Your entire business brand, designed at once",
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="dark h-full antialiased">
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <SiteHeader />
         {children}
       </body>
     </html>

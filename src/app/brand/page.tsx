@@ -27,7 +27,7 @@ export default function BrandPage() {
   const [analysis] = useState<BrandAnalysis | null>(() => readStoredAnalysis(intake));
 
   useEffect(() => {
-    if (!intake) router.replace("/");
+    if (!intake) router.replace("/start");
   }, [intake, router]);
 
   if (!intake || !analysis) return null;
@@ -134,7 +134,7 @@ export default function BrandPage() {
           Looks Good → See 3 Directions
         </Link>
         <Link
-          href="/"
+          href="/start"
           className="flex-1 rounded-lg border border-white/15 px-6 py-3.5 text-center text-sm font-semibold uppercase tracking-widest text-white/70 transition hover:border-white/40 hover:text-white"
         >
           Start Over

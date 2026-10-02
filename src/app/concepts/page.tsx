@@ -35,7 +35,7 @@ export default function ConceptsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!intake) router.replace("/");
+    if (!intake) router.replace("/start");
   }, [intake, router]);
 
   if (!intake || !analysis) return null;

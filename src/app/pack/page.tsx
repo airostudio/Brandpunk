@@ -51,7 +51,7 @@ export default function PackPage() {
   const linkedinCoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!intake || !concept) router.replace("/");
+    if (!intake || !concept) router.replace("/start");
   }, [intake, concept, router]);
 
   async function refreshAccountStatus() {
@@ -257,7 +257,7 @@ export default function PackPage() {
       )}
 
       <Link
-        href="/"
+        href="/start"
         className="mt-10 rounded-lg border border-white/15 px-6 py-3 text-center text-sm font-semibold uppercase tracking-widest text-white/70 transition hover:border-white/40 hover:text-white"
       >
         Start a New Brand Pack

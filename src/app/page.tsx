@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { IntakeForm } from "@/components/IntakeForm";
+import Link from "next/link";
+import { PricingCards } from "@/components/PricingCards";
 
 const HOW_IT_WORKS = [
   {
@@ -45,7 +46,7 @@ const USE_CASES = [
 ];
 
 const OUTPUT_FORMATS = [
-  { name: "Business cards", detail: "PNG, ready to print" },
+  { name: "Business cards", detail: "300 DPI PNG, ready to print" },
   { name: "Letterheads", detail: "PNG & editable Word" },
   { name: "Invoices", detail: "Editable Excel template" },
   { name: "Email signatures", detail: "HTML, works in Outlook & Gmail" },
@@ -53,36 +54,61 @@ const OUTPUT_FORMATS = [
   { name: "Brand guidelines", detail: "Word summary" },
 ];
 
+const PRO_FORMATS = [
+  "Envelope & compliments slip",
+  "Quote templates + rate card",
+  "Facebook / LinkedIn cover banners",
+  "Brand guidelines PDF",
+  "Print-ready bleed + crop marks",
+];
+
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col items-center px-4 py-16 sm:py-24">
-      <div className="mb-12 flex max-w-2xl flex-col items-center text-center">
-        <span className="mb-4 rounded-full border border-accent/40 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent">
-          BrandPunk
+    <main className="flex flex-1 flex-col items-center overflow-hidden px-4 py-16 sm:py-24">
+      {/* Hero */}
+      <section className="relative flex w-full max-w-3xl flex-col items-center text-center">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-24 left-1/2 h-[480px] w-[480px] -translate-x-1/2 rounded-full bg-accent/10 blur-[120px]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-10 right-0 h-2 w-40 -rotate-6 bg-accent-2/60 blur-sm sm:w-56"
+        />
+
+        <span className="relative mb-4 rounded-full border border-accent/40 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent">
+          AI Brand Studio — No Designer Required
         </span>
-        <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
-          Your entire business brand.
+        <h1 className="relative text-5xl font-black uppercase leading-[0.95] tracking-tight sm:text-7xl">
+          Build a brand
           <br />
-          <span className="text-accent">Designed at once.</span>
+          that hits <span className="text-accent">back.</span>
         </h1>
-        <p className="mt-4 max-w-xl text-balance text-white/60">
-          Upload your logo. Add your business. Get your entire brand pack —
-          business cards, letterheads, Word &amp; Excel templates, email
-          signatures, social kits and more.
+        <p className="relative mt-6 max-w-xl text-balance text-white/60">
+          Upload a logo, answer a few questions, and walk out with business
+          cards, letterheads, invoices, social kits and more — a full identity
+          in minutes, not a six-week agency retainer.
         </p>
-      </div>
 
-      <IntakeForm />
+        <div className="relative mt-8 flex w-full max-w-md flex-col gap-3 sm:flex-row">
+          <Link
+            href="/start"
+            className="flex-1 rounded-lg bg-accent px-8 py-4 text-center text-sm font-extrabold uppercase tracking-widest text-black transition hover:brightness-95"
+          >
+            Start Building — It&apos;s Free
+          </Link>
+          <Link
+            href="/account"
+            className="flex-1 rounded-lg border border-white/15 px-8 py-4 text-center text-sm font-semibold uppercase tracking-widest text-white/70 transition hover:border-white/40 hover:text-white"
+          >
+            Log In
+          </Link>
+        </div>
 
-      <ol className="mt-12 flex max-w-2xl flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-white/40">
-        <li>website URL</li>
-        <li className="text-white/20">{"•"}</li>
-        <li>upload logo</li>
-        <li className="text-white/20">{"•"}</li>
-        <li>business details</li>
-        <li className="text-white/20">{"→"}</li>
-        <li className="text-accent/80">3 brand directions</li>
-      </ol>
+        <p className="relative mt-6 text-xs uppercase tracking-widest text-white/30">
+          No designer. No agency fees. No waiting around.
+        </p>
+      </section>
 
       {/* How it works */}
       <section className="mt-28 w-full max-w-6xl">
@@ -146,6 +172,44 @@ export default function Home() {
             </div>
           ))}
         </div>
+
+        <div className="mt-6 rounded-xl border border-accent/30 bg-accent/5 p-5">
+          <p className="text-xs font-bold uppercase tracking-widest text-accent">Pro unlocks even more</p>
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-white/60">
+            {PRO_FORMATS.map((item) => (
+              <span key={item} className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="mt-28 w-full max-w-5xl">
+        <div className="mb-10 flex flex-col items-center text-center">
+          <h2 className="text-2xl font-black tracking-tight sm:text-3xl">Pay once, or never stop shipping brands</h2>
+          <p className="mt-2 max-w-lg text-sm text-white/50">
+            The free pack covers one business end-to-end. Subscribe if you&apos;re building brands for a living.
+          </p>
+        </div>
+        <PricingCards />
+      </section>
+
+      {/* Final CTA */}
+      <section className="mt-28 flex w-full max-w-3xl flex-col items-center rounded-2xl border border-white/10 bg-white/[0.02] px-6 py-14 text-center">
+        <h2 className="text-3xl font-black uppercase tracking-tight sm:text-4xl">
+          Stop briefing designers.
+          <br />
+          <span className="text-accent">Start shipping brands.</span>
+        </h2>
+        <Link
+          href="/start"
+          className="mt-8 rounded-lg bg-accent px-10 py-4 text-sm font-extrabold uppercase tracking-widest text-black transition hover:brightness-95"
+        >
+          Start Building — It&apos;s Free
+        </Link>
       </section>
     </main>
   );

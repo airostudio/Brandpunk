@@ -65,7 +65,7 @@ export default function EditorPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    if (!intake || !concept) router.replace("/");
+    if (!intake || !concept) router.replace("/start");
   }, [intake, concept, router]);
 
   if (!intake || !concept || !fields) return null;

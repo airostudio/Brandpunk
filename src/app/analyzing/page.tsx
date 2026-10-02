@@ -36,7 +36,7 @@ export default function AnalyzingPage() {
   useEffect(() => {
     const raw = window.sessionStorage.getItem(INTAKE_STORAGE_KEY);
     if (!raw) {
-      router.replace("/");
+      router.replace("/start");
       return;
     }
     const intake = JSON.parse(raw) as BrandIntake;

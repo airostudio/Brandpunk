@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { requestBillingPortalUrl, requestOneTimeCheckoutUrl, requestSubscriptionCheckoutUrl } from "@/lib/checkout";
 import { ONE_TIME_PRICE_DISPLAY, SUBSCRIPTION_PLANS, type SubscriptionPlanId } from "@/lib/plans";
 
 export type AccountStatus = {
@@ -30,21 +31,11 @@ export function UpgradeModal({
   async function startOneTimeCheckout() {
     setLoading("one-time");
     setError(null);
-    try {
-      const res = await fetch("/api/checkout/one-time", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ businessName }),
-      });
-      const data = await res.json();
-      if (data.ok && data.url) {
-        window.location.assign(data.url);
-      } else {
-        setError("Payments aren't set up on this deployment yet.");
-        setLoading(null);
-      }
-    } catch {
-      setError("Something went wrong starting checkout — try again.");
+    const url = await requestOneTimeCheckoutUrl(businessName);
+    if (url) {
+      window.location.assign(url);
+    } else {
+      setError("Payments aren't set up on this deployment yet.");
       setLoading(null);
     }
   }
@@ -52,21 +43,11 @@ export function UpgradeModal({
   async function startSubscriptionCheckout(planId: SubscriptionPlanId) {
     setLoading(planId);
     setError(null);
-    try {
-      const res = await fetch("/api/checkout/subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId }),
-      });
-      const data = await res.json();
-      if (data.ok && data.url) {
-        window.location.assign(data.url);
-      } else {
-        setError("Payments aren't set up on this deployment yet.");
-        setLoading(null);
-      }
-    } catch {
-      setError("Something went wrong starting checkout — try again.");
+    const url = await requestSubscriptionCheckoutUrl(planId);
+    if (url) {
+      window.location.assign(url);
+    } else {
+      setError("Payments aren't set up on this deployment yet.");
       setLoading(null);
     }
   }
@@ -74,16 +55,10 @@ export function UpgradeModal({
   async function manageBilling() {
     setLoading("portal");
     setError(null);
-    try {
-      const res = await fetch("/api/billing/portal", { method: "POST" });
-      const data = await res.json();
-      if (data.ok && data.url) {
-        window.location.assign(data.url);
-      } else {
-        setError("Could not open the billing portal.");
-        setLoading(null);
-      }
-    } catch {
+    const url = await requestBillingPortalUrl();
+    if (url) {
+      window.location.assign(url);
+    } else {
       setError("Could not open the billing portal.");
       setLoading(null);
     }
