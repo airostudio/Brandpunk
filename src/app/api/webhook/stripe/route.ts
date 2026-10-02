@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import {
   activateSubscription,
+  grantCreditsOnce,
   planIdForPriceId,
   renewSubscriptionPeriod,
   updateSubscriptionStatus,
@@ -51,6 +52,13 @@ export async function POST(request: Request) {
           const planId = metaPlanId ?? planIdForPriceId(subscription.items.data[0]?.price?.id);
           if (customerId && planId) {
             await activateSubscription({ stripeCustomerId: customerId, email, stripeSubscriptionId: subscription.id, planId });
+          }
+        } else if (session.mode === "payment" && session.metadata?.kind === "credits") {
+          const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+          const email = session.customer_details?.email ?? "";
+          const credits = Number(session.metadata?.credits ?? 0);
+          if (customerId && credits) {
+            await grantCreditsOnce({ checkoutSessionId: session.id, stripeCustomerId: customerId, email, credits });
           }
         }
         break;

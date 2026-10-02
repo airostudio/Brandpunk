@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
-import { get, put, BlobNotFoundError } from "@vercel/blob";
-import { allowanceForPlan, type SubscriptionPlanId } from "./plans";
+import { get, put, BlobNotFoundError, BlobPreconditionFailedError } from "@vercel/blob";
+import { ACCOUNT_COOKIE_NAME, allowanceForPlan, type SubscriptionPlanId } from "./plans";
 
 export {
   ACCOUNT_COOKIE_NAME,
@@ -8,9 +8,14 @@ export {
   SUBSCRIPTION_PLANS,
   ONE_TIME_PRICE_ENV_VAR,
   ONE_TIME_PRICE_DISPLAY,
+  CREDIT_PACKS,
+  IMAGE_CREDIT_COST,
+  VIDEO_CREDIT_COST,
   planIdForPriceId,
+  creditPackForPriceId,
   allowanceForPlan,
   type SubscriptionPlanId,
+  type CreditPackId,
 } from "./plans";
 
 export type CustomerRecord = {
@@ -22,6 +27,8 @@ export type CustomerRecord = {
   status: "active" | "past_due" | "canceled" | "incomplete";
   packsUsedThisPeriod: number;
   periodResetAt: string;
+  /** Ad Studio credits — independent of subscription plan; anyone can buy a pack. */
+  creditsBalance: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -34,8 +41,27 @@ function pointerPathForStripeCustomer(stripeCustomerId: string): string {
   return `stripe-customers/${stripeCustomerId}.json`;
 }
 
+function creditGrantMarkerPath(sessionId: string): string {
+  return `credit-grants/${sessionId}.json`;
+}
+
 export function newAccountToken(): string {
   return randomUUID();
+}
+
+/** Whether Vercel Blob (the account/subscription/credits store) is set up — routes should check this before touching it. */
+export function isStorageConfigured(): boolean {
+  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+/** Reads the account cookie off a Request's raw Cookie header. */
+export function getAccountTokenFromRequest(request: Request): string | undefined {
+  const cookieHeader = request.headers.get("cookie") ?? "";
+  return cookieHeader
+    .split(";")
+    .map((p) => p.trim())
+    .find((p) => p.startsWith(`${ACCOUNT_COOKIE_NAME}=`))
+    ?.slice(ACCOUNT_COOKIE_NAME.length + 1);
 }
 
 export async function getCustomerRecord(token: string): Promise<CustomerRecord | null> {
@@ -96,6 +122,29 @@ export function hasPacksRemaining(record: CustomerRecord): boolean {
   return record.packsUsedThisPeriod < allowance;
 }
 
+/** Finds the customer record for a Stripe customer, or creates a bare one (no subscription, no credits) if none exists yet. */
+async function findOrCreateCustomerRecord(stripeCustomerId: string, email: string): Promise<CustomerRecord> {
+  const existing = await findCustomerRecordByStripeCustomerId(stripeCustomerId);
+  if (existing) return existing;
+  const now = new Date().toISOString();
+  const record: CustomerRecord = {
+    accountToken: newAccountToken(),
+    email,
+    stripeCustomerId,
+    stripeSubscriptionId: null,
+    planId: null,
+    status: "incomplete",
+    packsUsedThisPeriod: 0,
+    periodResetAt: periodResetFromNow(),
+    creditsBalance: 0,
+    createdAt: now,
+    updatedAt: now,
+  };
+  await saveCustomerRecord(record);
+  await linkStripeCustomerToToken(stripeCustomerId, record.accountToken);
+  return record;
+}
+
 /**
  * Creates or reuses the account for a Stripe customer and (re)starts their
  * billing period at zero packs used. Called both from the success-page
@@ -109,22 +158,18 @@ export async function activateSubscription(params: {
   stripeSubscriptionId: string;
   planId: SubscriptionPlanId;
 }): Promise<CustomerRecord> {
-  const existing = await findCustomerRecordByStripeCustomerId(params.stripeCustomerId);
-  const now = new Date().toISOString();
+  const existing = await findOrCreateCustomerRecord(params.stripeCustomerId, params.email);
   const record: CustomerRecord = {
-    accountToken: existing?.accountToken ?? newAccountToken(),
+    ...existing,
     email: params.email,
-    stripeCustomerId: params.stripeCustomerId,
     stripeSubscriptionId: params.stripeSubscriptionId,
     planId: params.planId,
     status: "active",
     packsUsedThisPeriod: 0,
     periodResetAt: periodResetFromNow(),
-    createdAt: existing?.createdAt ?? now,
-    updatedAt: now,
+    updatedAt: new Date().toISOString(),
   };
   await saveCustomerRecord(record);
-  if (!existing) await linkStripeCustomerToToken(params.stripeCustomerId, record.accountToken);
   return record;
 }
 
@@ -167,4 +212,110 @@ export async function incrementPacksUsed(token: string): Promise<CustomerRecord 
   const record: CustomerRecord = { ...existing, packsUsedThisPeriod: existing.packsUsedThisPeriod + 1, updatedAt: new Date().toISOString() };
   await saveCustomerRecord(record);
   return record;
+}
+
+/**
+ * Grants credits to a Stripe customer exactly once per Checkout Session,
+ * no matter how many times this is called (webhook retries, and the
+ * success-page verify route both call it). The marker blob is written with
+ * allowOverwrite:false, so whichever caller writes it first "claims" the
+ * session; a second caller gets BlobPreconditionFailedError and skips the
+ * grant instead of double-crediting the purchase.
+ */
+export async function grantCreditsOnce(params: {
+  checkoutSessionId: string;
+  stripeCustomerId: string;
+  email: string;
+  credits: number;
+}): Promise<CustomerRecord | null> {
+  try {
+    await put(creditGrantMarkerPath(params.checkoutSessionId), new Date().toISOString(), {
+      access: "private",
+      addRandomSuffix: false,
+      allowOverwrite: false,
+      contentType: "text/plain",
+    });
+  } catch (err) {
+    if (err instanceof BlobPreconditionFailedError) return null;
+    throw err;
+  }
+
+  const existing = await findOrCreateCustomerRecord(params.stripeCustomerId, params.email);
+  const record: CustomerRecord = {
+    ...existing,
+    email: params.email,
+    creditsBalance: existing.creditsBalance + params.credits,
+    updatedAt: new Date().toISOString(),
+  };
+  await saveCustomerRecord(record);
+  return record;
+}
+
+/** Deducts credits for a generation. Returns null if the account doesn't exist or doesn't have enough credits. */
+export async function deductCredits(token: string, amount: number): Promise<CustomerRecord | null> {
+  const existing = await getCustomerRecord(token);
+  if (!existing || existing.creditsBalance < amount) return null;
+  const record: CustomerRecord = { ...existing, creditsBalance: existing.creditsBalance - amount, updatedAt: new Date().toISOString() };
+  await saveCustomerRecord(record);
+  return record;
+}
+
+/** Refunds credits back onto the balance — used when a generation fails after credits were already deducted. */
+export async function refundCredits(token: string, amount: number): Promise<CustomerRecord | null> {
+  const existing = await getCustomerRecord(token);
+  if (!existing) return null;
+  const record: CustomerRecord = { ...existing, creditsBalance: existing.creditsBalance + amount, updatedAt: new Date().toISOString() };
+  await saveCustomerRecord(record);
+  return record;
+}
+
+type VideoJobRecord = { accountToken: string; refunded: boolean; mirroredUrl: string | null };
+
+function videoJobPath(videoId: string): string {
+  return `video-jobs/${videoId}.json`;
+}
+
+/** Tracks which account owns a video generation job, so /video-status can refund the right account and only once. */
+export async function recordVideoJob(videoId: string, accountToken: string): Promise<void> {
+  const record: VideoJobRecord = { accountToken, refunded: false, mirroredUrl: null };
+  await put(videoJobPath(videoId), JSON.stringify(record), {
+    access: "private",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType: "application/json",
+  });
+}
+
+export async function getVideoJob(videoId: string): Promise<VideoJobRecord | null> {
+  try {
+    const result = await get(videoJobPath(videoId), { access: "private", useCache: false });
+    if (!result || result.statusCode !== 200) return null;
+    return JSON.parse(await new Response(result.stream).text()) as VideoJobRecord;
+  } catch (err) {
+    if (err instanceof BlobNotFoundError) return null;
+    throw err;
+  }
+}
+
+async function saveVideoJob(videoId: string, record: VideoJobRecord): Promise<void> {
+  await put(videoJobPath(videoId), JSON.stringify(record), {
+    access: "private",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType: "application/json",
+  });
+}
+
+/** Refunds a failed video job's credits exactly once, even if /video-status is polled many times after the failure. */
+export async function refundVideoJobOnce(videoId: string, amount: number): Promise<void> {
+  const job = await getVideoJob(videoId);
+  if (!job || job.refunded) return;
+  await refundCredits(job.accountToken, amount);
+  await saveVideoJob(videoId, { ...job, refunded: true });
+}
+
+export async function markVideoJobMirrored(videoId: string, mirroredUrl: string): Promise<void> {
+  const job = await getVideoJob(videoId);
+  if (!job) return;
+  await saveVideoJob(videoId, { ...job, mirroredUrl });
 }

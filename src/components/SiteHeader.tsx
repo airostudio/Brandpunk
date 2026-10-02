@@ -9,6 +9,12 @@ export function SiteHeader() {
         </Link>
         <nav className="flex items-center gap-1 sm:gap-3">
           <Link
+            href="/studio"
+            className="hidden whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold uppercase tracking-widest text-accent-2 transition hover:brightness-125 sm:inline-block sm:text-sm"
+          >
+            Ad Studio
+          </Link>
+          <Link
             href="/account"
             className="whitespace-nowrap rounded-lg px-2 py-2 text-xs font-semibold uppercase tracking-widest text-white/60 transition hover:text-white sm:px-3 sm:text-sm"
           >

@@ -53,3 +53,32 @@ export function allowanceForPlan(planId: SubscriptionPlanId | null): number | nu
   if (!planId) return 0;
   return SUBSCRIPTION_PLANS[planId].packsPerPeriod;
 }
+
+/**
+ * Ad Studio — the social/advert add-on. Generates images via OpenAI's image
+ * model and video via OpenAI's video model, paid for with credits instead of
+ * a per-pack or subscription charge, since usage (and OpenAI's own per-call
+ * cost) varies a lot more than a brand pack download does.
+ */
+export type CreditPackId = "starter";
+
+export const CREDIT_PACKS: Record<CreditPackId, { credits: number; priceDisplay: string; priceEnvVar: string }> = {
+  starter: { credits: 5000, priceDisplay: "$6.99", priceEnvVar: "STRIPE_PRICE_CREDITS_STARTER" },
+};
+
+/**
+ * Credit costs per generation. These bake in a margin over OpenAI's own
+ * per-call price — tune them once you have real OpenAI invoices in hand,
+ * they're not derived from a live price feed.
+ */
+export const IMAGE_CREDIT_COST = 2800;
+/** Video generation (Sora-class models) costs OpenAI dramatically more per call than a single image. */
+export const VIDEO_CREDIT_COST = 14000;
+
+export function creditPackForPriceId(priceId: string | null | undefined): CreditPackId | null {
+  if (!priceId) return null;
+  for (const id of Object.keys(CREDIT_PACKS) as CreditPackId[]) {
+    if (process.env[CREDIT_PACKS[id].priceEnvVar] === priceId) return id;
+  }
+  return null;
+}

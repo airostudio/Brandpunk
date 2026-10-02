@@ -186,6 +186,27 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Ad Studio add-on */}
+      <section className="mt-28 flex w-full max-w-4xl flex-col items-center rounded-2xl border border-accent-2/30 bg-accent-2/5 px-6 py-12 text-center">
+        <span className="mb-3 rounded-full border border-accent-2/40 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent-2">
+          New — Ad Studio Add-On
+        </span>
+        <h2 className="text-3xl font-black uppercase tracking-tight sm:text-4xl">
+          Turn your brand into <span className="text-accent-2">ads that move.</span>
+        </h2>
+        <p className="mt-4 max-w-xl text-balance text-white/60">
+          A dedicated prompt screen that generates social ad images and video
+          directly with OpenAI&apos;s latest models — credit-based, no
+          subscription required. Start with 5,000 credits for $6.99.
+        </p>
+        <Link
+          href="/studio"
+          className="mt-6 rounded-lg bg-accent-2 px-8 py-3.5 text-sm font-extrabold uppercase tracking-widest text-black transition hover:brightness-95"
+        >
+          Try Ad Studio
+        </Link>
+      </section>
+
       {/* Pricing */}
       <section className="mt-28 w-full max-w-5xl">
         <div className="mb-10 flex flex-col items-center text-center">

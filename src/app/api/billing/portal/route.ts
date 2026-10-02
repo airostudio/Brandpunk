@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { ACCOUNT_COOKIE_NAME, getCustomerRecord } from "@/lib/billing";
+import { getAccountTokenFromRequest, getCustomerRecord, isStorageConfigured } from "@/lib/billing";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const cookieHeader = request.headers.get("cookie") ?? "";
-  const token = cookieHeader
-    .split(";")
-    .map((p) => p.trim())
-    .find((p) => p.startsWith(`${ACCOUNT_COOKIE_NAME}=`))
-    ?.slice(ACCOUNT_COOKIE_NAME.length + 1);
+  if (!isStorageConfigured()) {
+    return NextResponse.json({ ok: false, reason: "storage-not-configured" }, { status: 503 });
+  }
+
+  const token = getAccountTokenFromRequest(request);
 
   if (!token) return NextResponse.json({ ok: false, reason: "not-signed-in" }, { status: 401 });
 
